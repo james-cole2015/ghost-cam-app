@@ -1,0 +1,56 @@
+import axios from 'axios'
+
+const API_BASE_URL = 'https://your-api-gateway-url.execute-api.us-east-1.amazonaws.com/prod'
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000,
+})
+
+export const fetchSightings = async () => {
+  try {
+    const response = await api.get('/sightings')
+    return response.data.sightings || []
+  } catch (error) {
+    console.error('Error fetching sightings:', error)
+    return []
+  }
+}
+
+export const uploadImage = async (file) => {
+  try {
+    const response = await api.get(`/upload-url?filename=${file.name}&contentType=${file.type}`)
+    const { uploadUrl, key } = response.data
+    
+    await axios.put(uploadUrl, file, {
+      headers: {
+        'Content-Type': file.type,
+      },
+    })
+    
+    return key
+  } catch (error) {
+    console.error('Error uploading image:', error)
+    throw new Error('Failed to upload image')
+  }
+}
+
+export const submitSighting = async (sightingData) => {
+  try {
+    const response = await api.post('/sightings', sightingData)
+    return response.data
+  } catch (error) {
+    console.error('Error submitting sighting:', error)
+    throw new Error('Failed to submit sighting')
+  }
+}
+
+export const deleteSighting = async (id) => {
+  try {
+    const response = await api.delete(`/sightings/${id}`)
+    return response.data
+  } catch (error) {
+    console.error('Error deleting sighting:', error)
+    throw new Error('Failed to delete sighting')
+  }
+}
